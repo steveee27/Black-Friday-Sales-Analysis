@@ -36,14 +36,21 @@ Before analysis, the dataset underwent the following preprocessing steps:
 ## Exploratory Data Analysis
 Through EDA, we uncovered several key patterns in customer purchase behavior:
 - **Gender vs Purchase**: Male customers visited the store more frequently and made more purchases than female customers.
+  -  ![1](https://github.com/user-attachments/assets/1ec28a4c-aa56-41ce-8bc2-6b129e3e40ed)
+  -  ![image](https://github.com/user-attachments/assets/60462f2b-f0ec-4763-b5d1-6a24e725eeb6)
 - **Age vs Purchase**: Customers aged 26-35 years contributed the most to sales.
+  - ![image](https://github.com/user-attachments/assets/e5ddd732-7e03-43b8-914c-7b8a1e3ac70c)
 - **Occupation vs Purchase**: Occupation category "4" had the highest number of purchases.
+  - ![image](https://github.com/user-attachments/assets/2ca3e1c0-face-4eb4-b3a6-b51907ceac37)
 - **City Category vs Purchase**: Most customers were from city category B.
+  - ![image](https://github.com/user-attachments/assets/a97ba5a5-89ca-4963-804a-f6f5ea9f1dde)
 - **Product Category Analysis**:
   - In product category 1, Product 5 had the highest sales, followed by Products 8 and 19.
+    - ![image](https://github.com/user-attachments/assets/5b73266c-f392-438f-a6a4-a0d9cba23f3d)
   - Product 8 was the most purchased in category 2.
+    - ![image](https://github.com/user-attachments/assets/79c12e16-aec5-4921-9b17-bdd5d970dae0)
   - Product 16 dominated sales in category 3.
-
+    - ![image](https://github.com/user-attachments/assets/4451b5f9-8fc6-46f4-848a-9f001ab3399b)
 These insights are valuable for targeting specific customer groups with personalized offers.
 
 ## Predictive Modeling
@@ -57,19 +64,10 @@ A random forest regression model provided a significantly better fit, explaining
 ## Results and Discussion
 
 ### Model Performance
-Our results indicate that **Word2Vec with Bi-LSTM** performed the best across all models, achieving the highest F1-Score of 0.9248. This configuration outperformed other combinations of text representation and deep recurrent models, highlighting the effectiveness of pre-trained embeddings like Word2Vec for capturing complex emotional nuances.
-
-### Confusion Matrix Analysis
-In addition to performance metrics, we evaluated the confusion matrix for the best-performing models. The confusion matrix provides insights into how well the model is distinguishing between different emotion categories.
-
-- **Word2Vec + Bi-LSTM**: The confusion matrix for this model showed high precision in recognizing joy, sadness, and anger, with lower misclassification between fear and surprise.
-- **TF-IDF + Bi-GRU**: TF-IDF struggled with distinguishing between love and joy, resulting in more misclassifications.
-- **GloVe + LSTM**: GloVe also exhibited strong performance with a high recall for sadness and joy but was prone to misclassifying surprise as fear.
-
-This analysis confirms that pre-trained embeddings like Word2Vec offer richer semantic representations, which improve model accuracy across various emotional categories.
+Our results indicate that **Random Forest Regression** performed better than **Linear Regression** for predicting customer purchase behavior. The Random Forest model explained approximately **63.38%** of the variance in the data, which is a good fit, considering the complexity of the dataset. The R-squared value of **0.6275** suggests that the model captures important trends in the data.
 
 ### Conclusion
-The combination of pre-trained embeddings and deep recurrent neural networks such as **Bi-LSTM** yields the best performance for emotion classification in social media text. This study contributes valuable insights into the optimization of emotion classification tasks and is applicable in areas such as sentiment analysis, mental health monitoring, and trend detection on social media platforms.
+The combination of **Random Forest Regression** and **EDA** provides useful insights into customer behavior and purchasing patterns. Our analysis demonstrates that creating targeted offers for male customers aged **26-35**, particularly for products from categories 1, 2, and 3, can significantly increase sales in future months. Although the Random Forest model explains a good portion of the variance, there are still factors that could be explored in future studies to further enhance prediction accuracy.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -78,4 +76,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Steve Marcello Liem**
 - **Davin Edbert Santoso Halim**
 - **Felicia Andrea Tandoko**
-
