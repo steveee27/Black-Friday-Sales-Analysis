@@ -51,6 +51,7 @@ Through EDA, we uncovered several key patterns in customer purchase behavior:
   ![image](https://github.com/user-attachments/assets/79c12e16-aec5-4921-9b17-bdd5d970dae0)
   - Product 16 dominated sales in category 3.
   ![image](https://github.com/user-attachments/assets/4451b5f9-8fc6-46f4-848a-9f001ab3399b)
+
 These insights are valuable for targeting specific customer groups with personalized offers.
 
 ## Predictive Modeling
