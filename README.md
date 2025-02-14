@@ -36,8 +36,8 @@ Before analysis, the dataset underwent the following preprocessing steps:
 ## Exploratory Data Analysis
 Through EDA, we uncovered several key patterns in customer purchase behavior:
 - **Gender vs Purchase**: Male customers visited the store more frequently and made more purchases than female customers.
-  -  ![1](https://github.com/user-attachments/assets/1ec28a4c-aa56-41ce-8bc2-6b129e3e40ed)
-  -  ![image](https://github.com/user-attachments/assets/60462f2b-f0ec-4763-b5d1-6a24e725eeb6)
+![1](https://github.com/user-attachments/assets/1ec28a4c-aa56-41ce-8bc2-6b129e3e40ed)
+![image](https://github.com/user-attachments/assets/60462f2b-f0ec-4763-b5d1-6a24e725eeb6)
 - **Age vs Purchase**: Customers aged 26-35 years contributed the most to sales.
   - ![image](https://github.com/user-attachments/assets/e5ddd732-7e03-43b8-914c-7b8a1e3ac70c)
 - **Occupation vs Purchase**: Occupation category "4" had the highest number of purchases.
