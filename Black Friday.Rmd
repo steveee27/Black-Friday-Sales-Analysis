@@ -1,0 +1,648 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r}
+# import all the libraries used
+library(BSDA)
+library(ggplot2)
+library(lattice)
+library(gridExtra)
+library(data.table) # to open large file
+library(dplyr)
+library(tidyverse)
+library(stringi)
+library(caret)
+library(randomForest)
+```
+
+```{r}
+## open "black.csv" file using fread
+df <- fread("blackfriday.csv")
+head(df,5)
+```
+
+```{r}
+## view five first datas from the dataset
+tail(df,5)
+```
+
+```{r}
+## display the structure the data, such as type, length, dimension, and contents of each column
+str(df)
+```
+
+```{r}
+## display the summary and descriptive statistic of each column
+summary(df)
+```
+
+```{r}
+## view all variables in dataset which are the columns name
+colnames(df)
+```
+
+```{r}
+## check if there are any duplicated values in dataset
+sum <- sum(duplicated(df))
+sum
+## output = 0 --> there are no duplicated values in this dataset
+```
+```{r}
+## convert all the columns name to lowercase for easy use
+colnames(df) <- tolower(colnames(df))
+colnames(df)
+```
+```{r}
+## columns name has converted to lowercase
+head(df)
+```
+
+```{r}
+## check unique values in gender
+unique(df$gender)
+```
+
+```{r}
+## check unique values in age
+unique(df$age)
+```
+
+```{r}
+## check unique values in occupation
+unique(df$occupation)
+```
+
+```{r}
+## check unique values in city_category
+unique(df$city_category)
+```
+
+```{r}
+## check unique values in stay_in_current_city_years
+unique(df$stay_in_current_city_years)
+```
+
+```{r}
+## replace "4+" with "4" and
+df$stay_in_current_city_years[df$stay_in_current_city_years == "4+"] <- "4"
+
+unique(df$stay_in_current_city_years)
+```
+
+```{r}
+## check unique values in marital_status
+unique(df$marital_status)
+```
+
+```{r}
+## check unique values in product_category_1
+unique(df$product_category_1)
+```
+
+```{r}
+## check unique values in product_category_2
+unique(df$product_category_2)
+```
+
+```{r}
+## check unique values in product_category_3
+unique(df$product_category_3)
+```
+
+```{r}
+## count missing values in product_category_1, product_category_2, and product_category_3
+null_count <- colSums(is.na(df[, c("product_category_1", "product_category_2", "product_category_3")]))
+
+print(null_count)
+```
+
+```{r}
+df2 <- df
+```
+
+```{r}
+# Replace NaN values with -1 in original dataframe
+df$product_category_2 [is.na(df$product_category_2 )] <- -1
+
+# Replace NaN values with mode in original dataframe
+df$product_category_3  [is.na(df$product_category_3  )] <- -1
+
+head(df)
+```
+
+```{r}
+## there are no NaN values
+null_count <- colSums(is.na(df[, c("product_category_1", "product_category_2", "product_category_3")]))
+
+print(null_count)
+```
+
+```{r}
+# get unique values in the 'purchase' column of the 'df' dataframe
+unique_vals <- unique(df$purchase)
+unique_vals
+
+# get the count of null values in the 'purchase' column of the 'df' dataframe
+null_count <- sum(is.na(df$purchase))
+null_count
+```
+
+```{r}
+# Set plot dimensions and adjust margins
+options(repr.plot.width=15, repr.plot.height=5)
+theme_set(theme_bw(base_size=14))
+theme_update(plot.margin=unit(c(1,1,1,1), "cm"))
+
+# Create plot objects
+plot1 <- ggplot(df, aes(x=purchase)) + 
+  geom_density(fill="blue", alpha=0.3) + 
+  xlab("Purchase") +
+  ylab("Density") +
+  ggtitle("Distribution of Purchase Amounts")
+
+plot2 <- ggplot(df, aes(x=1, y=purchase)) + 
+  geom_boxplot(fill="blue", alpha=0.3) +
+  xlab("") +
+  ylab("Purchase") +
+  ggtitle("Boxplot of Purchase Amounts")
+
+# Combine plots into a single figure7
+grid.arrange(plot1, plot2, ncol=2)
+```
+We observed that most of the purchase value is between 5000 to 10000.
+
+```{r}
+# group data by 'gender' and count the number of occurrences
+gender_counts <- df %>% 
+  group_by(gender) %>% 
+  summarise(count = n())
+
+# create pie chart to view gender distribution
+ggplot(gender_counts, aes(x="", y=count, fill=gender)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  labs(fill="Gender", x=NULL, y=NULL, title="Gender Distribution") +
+  theme_void() +
+  theme(plot.title = element_text(hjust=0.5)) +
+  geom_text(aes(label = paste0(round(count/sum(count)*100),"%")),
+            position = position_stack(vjust = 0.5)) +
+  guides(fill=guide_legend(title="Gender")) +
+  theme(legend.position="right") 
+```
+Customers who did the purchase are 75% male.
+
+```{r}
+ma <- df[df$gender == 'M',]
+fe <- df[df$gender == 'F',]
+
+p1 <- ggplot(ma, aes(x = purchase)) + 
+  geom_density(fill = "blue", alpha = 0.3) +
+  ggtitle("Male")
+
+p2 <- ggplot(fe, aes(x = purchase)) +
+  geom_density(fill = "pink", alpha = 0.3) +
+  ggtitle("Female")
+
+grid.arrange(p1, p2, ncol = 2)
+```
+Purchase distribution of male and female.
+
+```{r}
+p <- df %>% 
+  group_by(gender) %>%
+  summarize(purchase = sum(purchase)) %>%
+  ungroup()
+ggplot(p, aes(x = gender, y = purchase)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(x = "Gender", y = "Total Purchase") +
+  ggtitle("Total Purchase by Gender")
+```
+
+Male customers purchased more.
+```{r}
+# Create frequency table and sort values in descending order
+p_id <- df %>% 
+  count(product_id) %>% 
+  arrange(desc(n)) %>% 
+  head(40) %>% 
+  arrange(desc(n))
+
+# Create a bar plot
+ggplot(data = p_id, aes(x = reorder(product_id, n), y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() + labs(x = "Product ID", y = "Count") + coord_flip()
+```
+Top 40 products purchased by customers.
+
+```{r}
+c1 <- df %>% 
+  group_by(gender, product_category_1) %>% 
+  summarise(p_count = n()) %>% 
+  ungroup()
+
+ggplot(c1, aes(x = product_category_1, y = p_count, fill = gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(x = "Product Category 1", y = "Count", fill = "Gender")
+```
+The top purchased products from category 1 is category 1, 5, and 8. Most of the customers who bought those products are male.
+
+```{r}
+c2 <- df %>% 
+  group_by(gender, product_category_2) %>% 
+  summarise(p_count = n()) %>% 
+  ungroup()
+
+ggplot(c2, aes(x = product_category_2, y = p_count, fill = gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(x = "Product Category 2", y = "Count", fill = "Gender")
+```
+The top purchased products from category 2 is category 8. Most of the customers who bought those products are male.
+
+```{r}
+c3 <- df %>% 
+  group_by(gender, product_category_3) %>% 
+  summarise(p_count = n()) %>% 
+  ungroup()
+
+ggplot(c3, aes(x = product_category_3, y = p_count, fill = gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(x = "Product Category 3", y = "Count", fill = "Gender")
+```
+The top purchased products from category 3 is category 16. Most of the customers who bought those products are male.
+
+```{r}
+df %>% 
+  count(marital_status) %>% 
+  ggplot(aes(x = "", y = n, fill = factor(marital_status))) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  scale_fill_manual(values = c("steelblue", "orange")) +
+  geom_text(aes(label = paste0(round(n/sum(n)*100), "%")), position = position_stack(vjust = 0.5)) +
+  labs(fill = "Marital Status") +
+  ggtitle("Marital Status")
+```
+
+Unmarried customers purchased more than married customers.
+```{r}
+UM_P <- df %>% 
+  filter(marital_status == 0) %>% 
+  count(purchase) %>% 
+  rename(count = n)
+
+ggplot(UM_P, aes(x = purchase)) +
+  geom_density(fill = "steelblue") +
+  theme_minimal() +
+  labs(x = "Purchase", y = "Density", title = "UnMarried")
+```
+
+Purchase distribution of unmarried customers.
+```{r}
+M_P <- df %>% 
+  filter(marital_status == 1) %>% 
+  count(purchase) %>% 
+  rename(count = n)
+
+ggplot(M_P, aes(x = purchase)) +
+  geom_density(fill = "steelblue") +
+  theme_minimal() +
+  labs(x = "Purchase", y = "Density", title = "Married")
+```
+
+Purchase distribution of married customers.
+```{r}
+M_UM_P <- df %>% 
+           group_by(gender, marital_status) %>%
+           summarise(purchase = sum(purchase)) %>%
+           ungroup()
+
+ggplot(M_UM_P, aes(x = marital_status, y = purchase, fill = gender)) +
+  geom_bar(stat = "identity", position = "dodge")
+```
+
+Unmarried customers purchased more with most of them are male.
+```{r}
+UM <- df %>%
+        filter(marital_status == 0) %>%
+        count(product_id) %>%
+        arrange(desc(n)) %>%
+        head(10)
+
+ggplot(UM, aes(x = product_id, y = n)) +
+  geom_bar(stat = "identity") +
+  labs(title = "UnMarried_Customer") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+Top 10 purchased product id by unmarried customers.
+```{r}
+M <- df %>%
+       filter(marital_status == 1) %>%
+       count(product_id) %>%
+       arrange(desc(n)) %>%
+       head(10)
+
+ggplot(M, aes(x = product_id, y = n)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Married_Customer") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+Top 10 purchased product id by married customers.
+```{r}
+c1 <- df %>% 
+  group_by(purchase, product_category_1) %>% 
+  summarise(p_count = n()) %>% 
+  ungroup()
+
+ggplot(c1, aes(x = product_category_1, y = p_count, fill = purchase)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(x = "Product Category 1", y = "Total Purchase", fill = "Purchase")
+```
+
+The most purchased product from category 1 is product 5, followed by product 8, and product 19.
+
+
+```{r}
+c3 <- df %>% 
+  group_by(purchase, product_category_3) %>% 
+  summarise(p_count = n()) %>% 
+  ungroup()
+
+ggplot(c3, aes(x = product_category_3, y = p_count, fill = purchase)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(x = "Product Category 3", y = "Total purchase", fill = "Purchase")
+```
+The most purchased product from category 3 is product 14.
+
+===============
+| CORRELATION |
+===============
+
+```{r}
+str(df)
+```
+
+Dependent Variable: Total Purchase (continuous)
+Independent Variable: 
+- Gender (nominal) - Point Biserial
+- Age (continuous) - Spearman
+- City Category (nominal) - Spearman
+- Stay in Current City years (ordinal) - Pearson / Spearman
+- Marital status (nominal) - Point Biserial
+
+==========
+| GENDER |
+==========
+```{r}
+# replace "M" with "0" and "F" with "1"
+df$gender[df$gender == "M"] <- "0"
+df$gender[df$gender == "F"] <- "1"
+
+# Specify the dependent variable and the independent variable of interest
+dep_var_purchase <- as.numeric(df$purchase)
+indep_var_gender <- as.numeric(df$gender)
+
+# Calculate the Point Biserial correlation
+cor_result_gender <- cor(dep_var_purchase, indep_var_gender)
+
+# View the correlation results
+cor_result_gender
+```
+
+```{r}
+dfs <- df$purchase
+x <- dfs
+# get median
+med = median(x)
+# subtract median from each value of x and get absolute deviation
+abs_dev = abs(x-med)
+# get MAD
+mad = 1.4826 * median(abs_dev)
+# get threshold values for outliers
+Tmin = med-(3*mad) 
+Tmax = med+(3*mad) 
+# find outlier
+x[which(x < Tmin | x > Tmax)]
+y = x[which(x > Tmin & x < Tmax)]
+```
+
+```{r}
+# Replace outliers with the mean
+mean_value <- mean(df$purchase,na.rm=TRUE)
+df$purchase <- ifelse(df$purchase < Tmin | df$purchase > Tmax, mean_value, df$purchase)
+
+dep_var_purchase <- as.numeric(df$purchase)
+indep_var_gender <- as.numeric(df$gender)
+
+# Calculate the Point Biserial correlation
+cor_result_gender <- cor(dep_var_purchase, indep_var_gender)
+
+# View the correlation results
+cor_result_gender
+```
+
+=======
+| Age |
+=======
+```{r}
+# change the age range using the median so you can find the correlation
+df$age[df$age == "0-17"] <- "0"
+df$age[df$age == "18-25"] <- "1"
+df$age[df$age == "26-35"] <- "2"
+df$age[df$age == "36-45"] <- "3"
+df$age[df$age == "46-50"] <- "4"
+df$age[df$age == "51-55"] <- "5"
+df$age[df$age == "55+"] <- "6"
+
+# Specify the dependent variable and the independent variable of interest
+dep_var_purchase <- as.numeric(df$purchase)
+indep_var_age <- as.numeric(df$age)
+
+# Calculate correlations using Pearson's correlation coefficient
+cor_results_age <- cor(dep_var_purchase, indep_var_age, method = "spearman")
+
+# Print the correlation coefficient
+cor_results_age
+```
+
+=================
+| City Category |
+=================
+```{r}
+# Perform ANOVA
+anova_results <- aov(df$purchase ~ df$city_category)
+
+# Print the ANOVA table
+summary(anova_results)
+
+# Perform Kruskal-Wallis test
+kruskal_results <- kruskal.test(df$purchase ~ df$city_category)
+
+# Print the Kruskal-Wallis test results
+kruskal_results
+```
+
+```{r}
+# Calculate Spearman's correlation coefficient
+cor_results_city <- cor(as.numeric(as.factor(df$city_category)), df$purchase, method = "spearman")
+
+# Print the correlation coefficient
+cor_results_city
+```
+
+==============================
+| Stay in Current City years |
+==============================
+```{r}
+# Calculate Spearman's rank correlation
+cor_results_stay <- cor(as.numeric(df$stay_in_current_city_years), df$purchase, method = "spearman")
+
+# Print the correlation coefficient
+cor_results_stay
+```
+
+==================
+| Marital Status |
+==================
+```{r}
+# Specify the dependent variable and the independent variable of interest
+dep_var_purchase <- as.numeric(df$purchase)
+indep_var_marital <- as.numeric(df$marital_status)
+
+# Calculate the Point Biserial correlation
+cor_result_marital <- cor(dep_var_purchase, indep_var_marital)
+
+# View the correlation results
+cor_result_marital
+```
+
+=============================
+| Statistical Test (T-Test) |
+=============================
+```{r}
+result_1 <- t.test(df$product_category_1, df$product_category_2)
+result_1
+```
+
+=============================
+| Statistical Test (Z-Test) |
+=============================
+```{r}
+sd_1 <- sd(df$product_category_1)
+sd_2 <- sd(df$product_category_2)
+result_2 <- z.test(df$product_category_1, df$product_category_2, 
+                   sigma.x = sd_1, sigma.y = sd_2)
+
+result_2
+```
+
+```{r}
+unique(df$occupation)
+df$user_id <- as.numeric(factor(df$user_id, levels = unique(df$user_id))) - 1
+df$product_id <- as.numeric(factor(df$product_id, levels = unique(df$product_id))) - 1
+df$city_category <- as.numeric(factor(df$city_category, levels = unique(df$city_category))) - 1
+df$product_category_1 <- as.numeric(factor(df$product_category_1, levels = unique(df$product_category_1))) - 1
+df$product_category_2 <- as.numeric(factor(df$product_category_2, levels = unique(df$product_category_2))) - 1
+df$product_category_3 <- as.numeric(factor(df$product_category_3, levels = unique(df$product_category_3))) - 1
+
+df
+```
+
+```{r}
+str(df)
+```
+
+```{r}
+df$user_id <- as.integer(df$user_id)
+df$product_id <- as.integer(df$product_id)
+df$gender <- as.integer(df$gender)
+df$age <- as.integer(df$age)
+df$gender <- as.integer(df$gender)
+df$city_category <- as.integer(df$city_category)
+
+df$stay_in_current_city_years <- as.integer(df$stay_in_current_city_years)
+df$occupation <- as.integer(df$occupation)
+df$marital_status <- as.integer(df$marital_status)
+df$product_category_1 <- as.integer(df$product_category_1)
+df$product_category_2 <- as.integer(df$product_category_2)
+df$product_category_3 <- as.integer(df$product_category_3)
+df$purchase <- as.integer(df$purchase)
+
+str(df)
+```
+
+=====================
+| Linear Regression |
+=====================
+```{r}
+# Membagi dataset menjadi set pelatihan dan set pengujian
+set.seed(123)  # Untuk reproduksi hasil yang sama
+training_index <- sample(1:nrow(df), 0.8*nrow(df))  # Mengambil 80% data sebagai set pelatihan
+training_set <- df[training_index, ]
+testing_set <- df[-training_index, ]
+
+# Membangun model regresi linier
+model <- lm(purchase ~ gender + age + occupation + city_category + stay_in_current_city_years + product_category_1 + product_category_2 + product_category_3 + marital_status , data = training_set)  # Menggunakan semua variabel independen untuk memprediksi variabel "purchase"
+
+summary(model)
+
+# Melakukan prediksi pada set pengujian
+predictions <- predict(model, newdata = testing_set)
+
+# Evaluasi performa model
+mse <- mean((testing_set$purchase - predictions)^2)  # Mean Squared Error
+mae <- mean(abs(testing_set$purchase - predictions))  # Mean Absolute Error
+rsquared <- 1 - sum((testing_set$purchase - predictions)^2) / sum((testing_set$purchase - mean(testing_set$purchase))^2)  # R-squared
+
+# Menampilkan hasil evaluasi
+print(paste("Mean Squared Error:", mse))
+print(paste("Mean Absolute Error:", mae))
+print(paste("R-squared:", rsquared))
+```
+```{r}
+df
+```
+
+=================
+| Random Forest |
+=================
+```{r}
+library(randomForest)
+
+# Menghapus kolom yang tidak diperlukan
+df3 <- subset(df, select = -c(product_id, user_id))
+
+# Menentukan variabel prediktor dan target
+X <- df3[, c("gender", "age", "occupation", "city_category", "marital_status", "stay_in_current_city_years", "product_category_1", "product_category_2", "product_category_3")]
+Y <- df3$purchase
+
+# Splitting the dataset
+set.seed(100)  # Set random seed for reproducibility
+train_indices <- sample(1:nrow(df3), 0.1 * nrow(df3))
+X_train <- X[train_indices, ]
+y_train <- Y[train_indices]
+X_test <- X[-train_indices, ]
+y_test <- Y[-train_indices]
+# Model Training
+rfr <- randomForest(X_train, y_train)
+
+# Training Accuracy
+print(rfr)
+
+# Testing Accuracy
+y_pred <- predict(rfr, X_test)
+rscore <- cor(y_test, y_pred)^2
+print(paste("R-squared:", rscore))
+
+# Predictions and Error Calculation
+predictions <- data.frame(Prediction = y_pred, Actual = y_test, Error = y_test - y_pred)
+print(predictions)
+```
